@@ -17,6 +17,11 @@ namespace MyRestAPI.Controllers
             _logger = logger;
         }
 
+        #region testing log4net
+        /// <summary>
+        /// Testing log4net logging functions (temp)
+        /// </summary>
+        /// <returns>string</returns>
         [HttpGet]
         public ActionResult Index()
         {
@@ -29,7 +34,7 @@ namespace MyRestAPI.Controllers
 
             return Ok("Hello World");
         }
-
+        #endregion
 
         /// <summary>
         /// HTTP Post To receive transaction from partner for further processing
@@ -57,6 +62,10 @@ namespace MyRestAPI.Controllers
                 if (response != null)
                 {
                     _logger.LogInformation(string.Format("RESPONSE: {0}", JsonSerializer.Serialize(response)));
+                    if (response.resultMessage.Contains(EnumList.GetDescription(ErrorMessage.AccessDenied))) 
+                    {
+                        return Unauthorized(response);
+                    }
                     return BadRequest(response);
                 }
 
@@ -85,6 +94,11 @@ namespace MyRestAPI.Controllers
         }
 
         #region private methods
+        /// <summary>
+        /// Validation against the fields in the request and return them in error code
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>TransactionPartnerResponse</returns>
         private TransactionPartnerResponse ValidateRequest(TransactionPartnerRequest request) 
         {
             // check for unauthorized partner
@@ -134,6 +148,12 @@ namespace MyRestAPI.Controllers
             return null;
         }
 
+        /// <summary>
+        /// calculates the final amount to be paid after applying several discount rules 
+        /// based on the totalamount
+        /// </summary>
+        /// <param name="totalAmount"></param>
+        /// <returns>totalDiscount</returns>
         private long CalculateDiscount(long totalAmount)
         {
             double percentage = 0;
